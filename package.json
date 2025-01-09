@@ -1,0 +1,182 @@
+{
+  "name": "avm-debug-adapter",
+  "version": "0.0.0-development",
+  "description": "Algorand AVM transaction and smart contract debugger using the Debugger Adapter Protocol",
+  "author": {
+    "name": "Algorand, llc"
+  },
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aorumbayev/avm-debugger.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aorumbayev/avm-debugger/issues"
+  },
+  "main": "dist/src/common/index.js",
+  "types": "dist/src/common/index.d.ts",
+  "typesVersions": {
+    "*": {
+      ".": [
+        "dist/src/common/index.d.ts"
+      ],
+      "*": [
+        "dist/src/common/index.d.ts"
+      ],
+      "node": [
+        "dist/src/node/index.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/src/common/index.d.ts",
+      "default": "./dist/src/common/index.js"
+    },
+    "./node": {
+      "types": "./dist/src/node/index.d.ts",
+      "default": "./dist/src/node/index.js"
+    }
+  },
+  "bin": {
+    "avm-debug-adapter": "./dist/src/cli.js"
+  },
+  "files": [
+    "dist/src"
+  ],
+  "scripts": {
+    "prepare": "npm run compile",
+    "compile": "shx rm -rf dist && tsc -p ./",
+    "build": "run-s build:*",
+    "build:dist": "npm run compile",
+    "lint": "eslint src --ext ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "check-format": "prettier . --check",
+    "format": "prettier . --write",
+    "extension:esbuild-base": "esbuild ./extension/src/extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=node --outfile=extension/dist/extension.js",
+    "extension:watch": "npm run -S extension:esbuild-base -- --sourcemap --sources-content=false --watch",
+    "extension:esbuild-web": "esbuild ./extension/src/web-extension.ts --bundle --tsconfig=./tsconfig.json --external:vscode --format=cjs --platform=browser --outfile=extension/dist/web-extension.js",
+    "extension:watch-web": "npm run -S extension:esbuild-web -- --sourcemap --sources-content=false --watch",
+    "extension:build": "npm run -S extension:esbuild-base -- --sourcemap --sources-content=false && npm run -S extension:esbuild-web -- --sourcemap --sources-content=false",
+    "extension:package": "vsce package",
+    "extension:publish": "vsce publish",
+    "extension:publish-pre-release": "vsce publish --pre-release",
+    "test": "ts-mocha -p tsconfig.json 'tests/**/*test.ts' --timeout 30s --diff false",
+    "test:coverage": "nyc npm run test",
+    "pre-commit": "npm run lint && npm run typecheck && npm run format"
+  },
+  "dependencies": {
+    "@vscode/debugadapter": "^1.64.0",
+    "algosdk": "^3.0.0",
+    "await-notify": "^1.0.1"
+  },
+  "devDependencies": {
+    "semantic-release": "^24.1.2",
+    "cpy-cli": "^5.0.0",
+    "@istanbuljs/nyc-config-typescript": "^1.0.2",
+    "@types/glob": "^7.2.0",
+    "@types/lodash": "^4.14.196",
+    "@types/mocha": "^9.1.0",
+    "npm-run-all": "^4.1.5",
+    "@types/node": "^14.14.37",
+    "@types/vscode": "^1.66.0",
+    "@typescript-eslint/eslint-plugin": "^5.62.0",
+    "@typescript-eslint/parser": "^5.62.0",
+    "@vscode/debugadapter-testsupport": "^1.64.0",
+    "@vscode/vsce": "^2.22.0",
+    "esbuild": "^0.14.29",
+    "eslint": "^8.52.0",
+    "eslint-config-prettier": "^9.0.0",
+    "events": "^3.3.0",
+    "glob": "^7.2.0",
+    "conventional-changelog-conventionalcommits": "8.0.0",
+    "mocha": "^10.2.0",
+    "nyc": "^15.1.0",
+    "prettier": "^3.0.3",
+    "shx": "^0.3.4",
+    "ts-mocha": "^10.0.0",
+    "typescript": "^4.6.3",
+    "url": "^0.11.3"
+  },
+  "release": {
+    "branches": [
+      {
+        "name": "main",
+        "prerelease": "beta"
+      },
+      {
+        "name": "release"
+      }
+    ],
+    "plugins": [
+      [
+        "@semantic-release/commit-analyzer",
+        {
+          "preset": "conventionalcommits",
+          "releaseRules": [
+            {
+              "type": "build",
+              "release": "patch"
+            },
+            {
+              "type": "chore",
+              "release": "patch"
+            },
+            {
+              "type": "refactor",
+              "release": "patch"
+            }
+          ]
+        }
+      ],
+      [
+        "@semantic-release/release-notes-generator",
+        {
+          "preset": "conventionalcommits",
+          "presetConfig": {
+            "types": [
+              {
+                "type": "feat",
+                "section": "Features"
+              },
+              {
+                "type": "fix",
+                "section": "Bug Fixes"
+              },
+              {
+                "type": "build",
+                "section": "Dependencies and Other Build Updates",
+                "hidden": false
+              },
+              {
+                "type": "refactor",
+                "section": "Code Refactoring"
+              }
+            ]
+          }
+        }
+      ],
+      [
+        "@semantic-release/npm",
+        {
+          "npmPublish": false,
+          "tarballDir": "out"
+        }
+      ],
+      [
+        "@semantic-release/github",
+        {
+          "assets": [
+            "out/*.tgz"
+          ],
+          "failComment": false,
+          "failTitle": false,
+          "labels": false
+        }
+      ]
+    ]
+  }
+}
